@@ -1,28 +1,37 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import Loading from './Loading';
+import * as Location from 'expo-location';
+import axios from './node_modules/axios';
 
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <View style={styles.yellowView}></View>
-      <View style={styles.blueView}>
-        <Text>Hello</Text>
-      </View>
-    </View>
-  );
-}
+API_KEY = "2d99eca102828273dc94e13bb94a2cf4";
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  yellowView: {
-    flex: 2,
-    backgroundColor: "yellow"
-  },
-  blueView: {
-    flex:1,
-    backgroundColor: "blue"
+export default class extends React.Component {
+  state = {
+    isLoading: true
+  };
+  getWeather = async (lat, lon) => {
+    const data = await axios.get(
+    `http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}`
+    );
+    console.log("data:", data);
+  };
+  getLocation = async () => {
+    try{
+      const response = await Location.requestPermissionsAsync();
+      console.log(response);
+      const {coords: {latitude, longitude}} = await Location.getCurrentPositionAsync();
+      console.log(latitude, longitude);
+      this.getWeather(latitude, longitude);
+      this.setState({isLoading : false});
+    } catch (error) {
+      alert("Can`t find you.", " So sad");
+  } 
   }
-});
+  componentDidMount() {
+    this.getLocation();
+  }
+  render() {
+    const {isLoading} = this.state;
+    return isLoading ? <Loading /> : null;
+  }
+}
